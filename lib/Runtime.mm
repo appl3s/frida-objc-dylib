@@ -1,6 +1,5 @@
 #include "Runtime.h"
 
-#include <iostream>
 #include <inttypes.h>
 
 extern "C" Class objc_readClassPair(Class bits, const struct objc_image_info *info);
@@ -27,12 +26,12 @@ namespace mull { namespace objc {
 
         mull::objc::Runtime::~Runtime() {
             for (const Class &clz: runtimeClasses) {
-                //errs() << "disposing class: " << class_getName(clz) << "\n";
-                //assert(objc_classIsRegistered(clz));
+                NSLog(@"disposing class: %s", class_getName(clz));
+                assert(objc_classIsRegistered(clz));
 
                 objc_disposeClassPair(clz);
 
-                //assert(objc_classIsRegistered(clz) == false);
+                assert(objc_classIsRegistered(clz) == false);
             }
         }
 
@@ -254,11 +253,11 @@ namespace mull { namespace objc {
                 //errs() << classref->getDebugDescription() << "\n";
 
                 Class runtimeClass = registerOneClass(classrefPtr, superClz);
-                //assert(objc_classIsRegistered(runtimeClass));
+                assert(objc_classIsRegistered(runtimeClass));
 
                 runtimeClasses.insert(runtimeClass);
 
-                oldAndNewClassesMap.push_back(std::pair<class64_t **, Class>(classrefPtr, runtimeClass));
+                oldAndNewClassesMap.emplace_back(classrefPtr, runtimeClass);
             }
 
             assert(classesToRegister.empty());
@@ -283,7 +282,7 @@ namespace mull { namespace objc {
                       // << classref->getDataPointer()->name << "\n";
                 exit(1);
             }
-            //assert(objc_classIsRegistered((Class)classref) == false);
+            assert(objc_classIsRegistered((Class)classref) == false);
 
             Class runtimeClass = objc_readClassPair((Class)classref, NULL);
             assert(runtimeClass);
@@ -292,7 +291,7 @@ namespace mull { namespace objc {
             // The class is registered by objc_readClassPair but we still hack on its
             // `flags` below and call objc_registerClassPair to make sure we can dispose
             // it with objc_disposeClassPair when JIT deallocates.
-            //assert(objc_classIsRegistered((Class)runtimeClass));
+            assert(objc_classIsRegistered((Class)runtimeClass));
 
             here_objc_class *runtimeClassInternal = (here_objc_class *)runtimeClass;
             here_objc_class *runtimeMetaclassInternal = (here_objc_class *)runtimeClassInternal->ISA();

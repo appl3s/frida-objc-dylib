@@ -17,6 +17,7 @@ all: agent.dylib
 agent.dylib:
 	$(CXX) -arch arm64 -ObjC++ -std=c++11 $(CFLAGS) -c lib/Runtime.mm -o obj/runtime.o
 	$(CXX) -arch arm64 -ObjC++ -std=c++11 -shared -Wl,-exported_symbol,_agent_main $(CFLAGS) -I$(@D)/include obj/runtime.o main.mm -o $@ $(LDFLAGS)
+	$(STRIP) $@
 
 .PHONY: clean
 clean:
